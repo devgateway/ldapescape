@@ -10,24 +10,43 @@ Copyright:
 	2018, Development Gateway, GPLv3+ */
 char *ldap_escape_filter(const char *string) {
 	const char unsafe[] = "\\*()\0";
+	const char escaped[] = "5c2a282900";
 	/* for the result we need at least as many bytes as the source string plus terminator */
-	int len = strlen(string) + 1;
+	int len, new_len;
+	len = new_len = strlen(string);
 
 	/* measure the required buffer size for the escaped string */
-	int unsafe_len = strlen(string);
-	for (i = 0; i < unsafe_len; i++) {
-		for (j = 0; j < sizeof(unsafe); j++) {
+	for (int i = 0; i < len; i++) {
+		for (int j = 0; j < sizeof(unsafe); j++) {
 			if (unsafe[j] == string[i]) {
 				/* each escaped character adds 2 more bytes */
-				len += 2;
+				new_len += 2;
 				break;
 			}
 		}
+		new_len++;
 	}
 
 	/* allocate the buffer */
-	result = (char *) malloc(len);
+	result = (char *) malloc(new_len + 1);
 	if (!result) return NULL;
+
+	int pos = 0;
+	for (int i = 0; i < len; i++) {
+		/* copy each character, even if it's unsafe */
+		result[pos] = string[pos];
+		for (int j = 0; j < sizeof(unsafe); j++) {
+			if (unsafe[j] == string[i]) {
+				result[pos] = '\\';
+				memcpy(result[pos + 1], escaped[j * 2], 2);
+				pos += 2;
+				break;
+			}
+		}
+		pos++;
+	}
+
+	result[new_len] = '\0';
 
 	return result;
 }
