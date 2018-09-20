@@ -25,7 +25,6 @@ char *ldap_escape_filter(const char *string) {
 				break;
 			}
 		}
-		new_len++;
 	}
 
 	/* allocate the buffer */
